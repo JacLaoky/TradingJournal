@@ -31,8 +31,15 @@ except FileNotFoundError:
 @st.cache_data(ttl=60)  # 设置缓存60秒，避免频繁请求 Notion
 def load_notion_data():
     try:
+        db_info = notion.databases.retrieve(database_id=DATABASE_ID)
         # 查询数据库 (默认取前100条，如需更多需加分页逻辑)
-        response = notion.databases.query(database_id=DATABASE_ID)
+        if not db_info.get("data_sources"):
+            st.error("这个数据库没有关联 Data Source，无法查询。")
+            return []
+        
+        data_source_id = db_info["data_sources"][0]["id"]
+
+        response = notion.data_sources.query(data_source_id=data_source_id)
         results = response.get("results")
         
         data = []
