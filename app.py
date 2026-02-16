@@ -63,7 +63,7 @@ def load_notion_data():
                 
                 # 3. 获取 Date (Date属性 - 优先取结束时间)
                 # 假设列名叫 "Date"
-                date_prop = props.get("Date", {}).get("date", None)
+                date_prop = props.get("Trade Date", {}).get("date", None)
                 if date_prop:
                     # 如果有 end date (平仓日)，用 end；否则用 start
                     trade_date = date_prop.get("end") or date_prop.get("start")
