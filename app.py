@@ -105,11 +105,9 @@ if not raw_data:
 initial_capital = 18600
     
     # 添加强制刷新按钮
-    if st.button("🔄 Refresh"):
-        st.cache_data.clear()
-        st.rerun()
-        
-    st.write(f"当前计算基于本金: **${initial_capital:,.2f}**")
+if st.button("🔄 刷新数据 from Notion"):
+    st.cache_data.clear()
+    st.rerun()
 
 # === 5. 数据处理逻辑 (DataFrame) ===
 def process_dataframe(data, capital):
