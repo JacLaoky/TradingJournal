@@ -102,12 +102,10 @@ if not raw_data:
     st.stop()
 
 # === 4. 侧边栏设置 ===
-with st.sidebar:
-    st.header("⚙️ 账户设置")
-    initial_capital = st.number_input("初始本金 (Initial Capital)", value=10000, step=1000)
+initial_capital = 18600
     
     # 添加强制刷新按钮
-    if st.button("🔄 刷新数据 from Notion"):
+    if st.button("🔄 Refresh"):
         st.cache_data.clear()
         st.rerun()
         
