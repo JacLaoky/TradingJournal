@@ -201,6 +201,7 @@ if selected_tab == "Account Growth":
         fillcolor='rgba(0, 200, 5, 0.05)',
         name="Equity",
         customdata=df['Return %'],
+        hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Equity</b>: $%{y:,.0f}<br><b>Return</b>: %{customdata:.2f}%<extra></extra>'
     ))
 
     fig.add_hline(
@@ -214,7 +215,7 @@ if selected_tab == "Account Growth":
     fig.add_trace(go.Scatter(
         x=[df['Date'].iloc[-1]], y=[df['Equity'].iloc[-1]],
         mode='markers+text',
-        text=[f"${df['Equity'].iloc[-1]:,.0f}"],
+        text=[f"${df['Equity'].iloc[-1]:,.0f}<br>({df['Return %'].iloc[-1]:+.2f}%)"],
         textposition="top left",
         marker=dict(color='#00C805', size=8),
         name="Current"
