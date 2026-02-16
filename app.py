@@ -213,7 +213,7 @@ if selected_tab == "Account Growth":
     )
     
     fig.add_trace(go.Scatter(
-        x=[df['Date'].iloc[-1]], y=[df['Equity'].iloc[-1]],
+        x=[df['Date']], y=[df['Equity']],
         mode='markers+text',
         text=[f"${df['Equity'].iloc[-1]:,.0f}<br>({df['Return %'].iloc[-1]:+.2f}%)"],
         textposition="top left",
