@@ -105,7 +105,7 @@ if not raw_data:
 initial_capital = 18600
     
     # 添加强制刷新按钮
-if st.button("🔄 刷新数据 from Notion"):
+if st.button("🔄"):
     st.cache_data.clear()
     st.rerun()
 
