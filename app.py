@@ -130,6 +130,11 @@ def process_dataframe(data, capital):
     df['Cumulative P&L'] = df['P&L'].cumsum()
     df['Equity'] = capital + df['Cumulative P&L']
     df['Return %'] = (df['Cumulative P&L'] / capital) * 100
+
+    df['Daily Return %'] = (df['P&L'] / capital) * 100
+    df['Daily_Label'] = df.apply(
+        lambda x: f"${x['P&L']:,.0f}<br>({x['Daily Return %']:+.2f}%)", axis=1
+    )
     
     df['Label_Equity'] = df.apply(
         lambda x: f"${x['Equity']:,.0f}<br>({x['Return %']:+.1f}%)", axis=1
@@ -223,9 +228,10 @@ elif selected_tab == "Daily P&L":
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in df['P&L']]
     fig = go.Figure(go.Bar(
         x=df['Date'], y=df['P&L'],
-        text=df['P&L'].apply(lambda x: f"{x:,.0f}"),
+        text=df['Daily_Label'],
         textposition='outside',
-        marker_color=colors
+        marker_color=colors,
+        name="Daily P&L",
     ))
     fig = shared_layout(fig)
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
