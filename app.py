@@ -195,11 +195,15 @@ if selected_tab == "Account Growth":
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df['Date'], y=df['Equity'],
-        mode='lines',
+        mode='lines+markers+text',
+        text=df['Label_Equity'],
+        textposition="top left",
+        textfont=dict(size=9, color="#e0e0e0"),
         line=dict(color='#00C805', width=2, shape='spline'), # 平滑曲线
         fill='tozeroy',
         fillcolor='rgba(0, 200, 5, 0.05)',
         name="Equity",
+        marker=dict(size=6),
         customdata=df['Return %'],
         hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Equity</b>: $%{y:,.0f}<br><b>Return</b>: %{customdata:.2f}%<extra></extra>'
     ))
@@ -212,17 +216,6 @@ if selected_tab == "Account Growth":
         annotation_position="bottom right"
     )
     
-    fig.add_trace(go.Scatter(
-        x=[df['Date']], y=[df['Equity']],
-        mode='markers+text',
-        text=[
-            f"${e:,.0f}<br>({r:+.2f}%)" 
-            for e, r in zip(df['Equity'], df['Return %'])
-        ],
-        textposition="top left",
-        marker=dict(color='#00C805', size=8),
-        name="Current"
-    ))
     fig = shared_layout(fig)
     st.plotly_chart(fig, use_container_width=True, config=config_settings) # 隐藏工具栏
 
