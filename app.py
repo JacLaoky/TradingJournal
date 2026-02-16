@@ -233,7 +233,7 @@ elif selected_tab == "Daily P&L":
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
 
 elif selected_tab == "Monthly Returns":
-    monthly_df = df.groupby('Month_Sort', 'Month')['P&L'].sum().reset_index()
+    monthly_df = df.groupby(['Month_Sort', 'Month'])['P&L'].sum().reset_index()
     monthly_df = monthly_df.sort_values('Month_Sort')
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in monthly_df['P&L']]
     fig = go.Figure(go.Bar(
