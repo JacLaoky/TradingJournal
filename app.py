@@ -135,7 +135,8 @@ def process_dataframe(data, capital):
         lambda x: f"${x['Equity']:,.0f}<br>({x['Return %']:+.1f}%)", axis=1
     )
     
-    df['Month'] = df['Date'].dt.strftime('%Y-%m')
+    df['Month_Sort'] = df['Date'].dt.strftime('%Y-%m')
+    df['Month'] = df['Date'].dt.strftime('%Y %b')
     return df
 
 df = process_dataframe(raw_data, initial_capital)
@@ -232,10 +233,12 @@ elif selected_tab == "Daily P&L":
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
 
 elif selected_tab == "Monthly Returns":
-    monthly_df = df.groupby('Month')['P&L'].sum().reset_index()
+    monthly_df = df.groupby('Month_Sort', 'Month')['P&L'].sum().reset_index()
+    monthly_df = monthly_df.sort_values('Month_Sort')
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in monthly_df['P&L']]
     fig = go.Figure(go.Bar(
-        x=monthly_df['Month'], y=monthly_df['P&L'],
+        x=monthly_df['Month'], 
+        y=monthly_df['P&L'],
         marker_color=colors,
         text=monthly_df['P&L'].apply(lambda x: f"{x:,.0f}"),
         textposition='outside'
