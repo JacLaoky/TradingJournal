@@ -20,7 +20,10 @@ hide_st_style = """
     
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
-    footer {visibility: hidden;}
+    footer {
+            visibility: hidden;
+            display: none !important;
+    }
     
     div[data-testid="stMetric"] {
         background-color: transparent !important;
