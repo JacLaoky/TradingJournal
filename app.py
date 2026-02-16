@@ -13,32 +13,25 @@ count = st_autorefresh(interval=60 * 1000, key="dataframerefresh")
 # 隐藏默认菜单
 hide_st_style = """
 <style>
-    /* 1. 移除顶部巨大的空白区域 */
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
-        max-width: 100% !important;
     }
-    
-    /* 2. 隐藏 Header, Footer 和 汉堡菜单 */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* 3. 减少组件之间的默认垂直间距 */
-    div[data-testid="stVerticalBlock"] {
-        gap: 0.5rem !important;
-    }
-    
-    /* 4. (可选) 让 Metric 指标更紧凑 */
+    /* 让 Metric 指标背景透明，但加个边框 */
     div[data-testid="stMetric"] {
-        background-color: #f9f9f9; /* 给指标加个淡淡的背景，像卡片 */
+        background-color: transparent !important; /* 透明 */
+        border: 1px solid rgba(255, 255, 255, 0.2); /* 淡淡的白边框 */
         padding: 10px;
         border-radius: 5px;
         text-align: center;
     }
+    /* 不需要强制改字体颜色，Streamlit 会自动变成白色适应黑背景 */
 </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
@@ -160,8 +153,6 @@ c3.metric("Trades", len(df))
 if c4.button("↻"):
     st.cache_data.clear()
     st.rerun()
-
-st.divider()
 
 selected_tab = st.radio(
     "View:", 
