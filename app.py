@@ -8,10 +8,9 @@ from streamlit_autorefresh import st_autorefresh
 # === 1. 页面配置 ===
 st.set_page_config(page_title="Trading Dashboard", layout="wide")
 
-# 自动刷新逻辑
 count = st_autorefresh(interval=60 * 1000, key="dataframerefresh")
 
-# --- 核心修改：CSS 样式注入 (解决"间距很空"的问题) ---
+# 隐藏默认菜单
 hide_st_style = """
 <style>
     /* 1. 移除顶部巨大的空白区域 */
@@ -44,61 +43,60 @@ hide_st_style = """
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# === 2. Notion 连接设置 (保持不变) ===
+# === 2. Notion 连接设置 ===
+# 初始化 Notion 客户端
 try:
-    # 兼容本地开发和云端部署
-    if "NOTION_TOKEN" in st.secrets:
-        notion = Client(auth=st.secrets["NOTION_TOKEN"])
-        DATABASE_ID = st.secrets["DATABASE_ID"]
-    else:
-        st.warning("未检测到 Secrets，请检查配置。")
-        st.stop()
+    notion = Client(auth=st.secrets["NOTION_TOKEN"])
+    DATABASE_ID = st.secrets["DATABASE_ID"]
 except FileNotFoundError:
     st.error("请配置 .streamlit/secrets.toml 文件！")
     st.stop()
 
-# === 3. 获取并清洗 Notion 数据 (保持不变) ===
-@st.cache_data(ttl=60)
+# === 3. 获取并清洗 Notion 数据 ===
+@st.cache_data(ttl=60)  # 设置缓存60秒，避免频繁请求 Notion
 def load_notion_data():
     try:
         db_info = notion.databases.retrieve(database_id=DATABASE_ID)
+        # 查询数据库 (默认取前100条，如需更多需加分页逻辑)
         if not db_info.get("data_sources"):
-            # 兼容：如果不是 Data Source 数据库，尝试直接 query
-            pass 
+            st.error("这个数据库没有关联 Data Source，无法查询。")
+            return []
         
-        # 尝试使用 query (兼容普通数据库)
-        response = notion.databases.query(database_id=DATABASE_ID)
+        data_source_id = db_info["data_sources"][0]["id"]
+
+        response = notion.data_sources.query(data_source_id=data_source_id)
         results = response.get("results")
         
         data = []
         for page in results:
             props = page["properties"]
+            
+            # --- 提取逻辑 (请根据你Notion的实际列名微调) ---
             try:
-                # 1. 获取 Symbol
+                # 1. 获取 Symbol (Title属性)
+                # 假设你的标题列叫 "Name" 或 "Symbol"
                 symbol = "Unknown"
                 if "Name" in props and props["Name"]["title"]:
                     symbol = props["Name"]["title"][0]["plain_text"]
-                elif "Symbol" in props and props["Symbol"]["title"]:
+                elif "Symbol" in props and props["Symbol"]["title"]: # 备用名
                     symbol = props["Symbol"]["title"][0]["plain_text"]
                 
-                # 2. 获取 P&L
-                pnl = 0
-                if "P&L" in props:
-                    pnl = props["P&L"].get("number", 0)
+                # 2. 获取 P&L (Number属性)
+                # 假设列名叫 "P&L"
+                pnl = props.get("P&L", {}).get("number", 0)
                 if pnl is None: pnl = 0
                 
-                # 3. 获取 Date
-                trade_date = None
-                if "Trade Date" in props and props["Trade Date"]["date"]:
-                    date_obj = props["Trade Date"]["date"]
-                    trade_date = date_obj.get("end") or date_obj.get("start")
-                elif "Date" in props and props["Date"]["date"]:
-                    date_obj = props["Date"]["date"]
-                    trade_date = date_obj.get("end") or date_obj.get("start")
+                # 3. 获取 Date (Date属性 - 优先取结束时间)
+                # 假设列名叫 "Date"
+                date_prop = props.get("Trade Date", {}).get("date", None)
+                if date_prop:
+                    # 如果有 end date (平仓日)，用 end；否则用 start
+                    trade_date = date_prop.get("end") or date_prop.get("start")
+                else:
+                    continue # 如果没日期，跳过这行
                 
-                if not trade_date: continue
-
-                # 4. Result
+                # 4. 自动判断 Result (Win/Loss)
+                # 不需要Notion里有这个标签，直接根据钱算
                 result = "Win" if pnl > 0 else "Loss"
                 if pnl == 0: result = "Break Even"
 
@@ -110,6 +108,8 @@ def load_notion_data():
                 })
                 
             except Exception as e:
+                # 打印错误但不停止程序，防止单行数据错误导致崩溃
+                print(f"Skipping row error: {e}")
                 continue
                 
         return data
@@ -118,48 +118,55 @@ def load_notion_data():
         st.error(f"连接 Notion 失败: {e}")
         return []
 
+# 加载数据
 raw_data = load_notion_data()
 
+# 如果没有数据，提示用户
 if not raw_data:
-    st.info("暂无数据或无法连接 Notion。")
-    if st.button("重试"):
-        st.cache_data.clear()
-        st.rerun()
+    st.warning("未读取到数据，请检查 Database ID 或 Notion 内容。")
     st.stop()
 
-# === 4. 数据处理 (保持不变) ===
+# === 4. 侧边栏设置 ===
 initial_capital = 18600
+    
+    # 添加强制刷新按钮
+if st.button("🔄"):
+    st.cache_data.clear()
+    st.rerun()
 
+# === 5. 数据处理逻辑 (DataFrame) ===
 def process_dataframe(data, capital):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values(by='Date')
+    
+    # --- 核心计算 ---
     df['Cumulative P&L'] = df['P&L'].cumsum()
     df['Equity'] = capital + df['Cumulative P&L']
     df['Return %'] = (df['Cumulative P&L'] / capital) * 100
-    df['Label_Equity'] = df.apply(lambda x: f"${x['Equity']:,.0f}", axis=1) # 简化标签，太长会乱
+    
+    df['Label_Equity'] = df.apply(
+        lambda x: f"${x['Equity']:,.0f}<br>({x['Return %']:+.1f}%)", axis=1
+    )
+    
     df['Month'] = df['Date'].dt.strftime('%Y-%m')
     return df
 
 df = process_dataframe(raw_data, initial_capital)
 
-# === 5. 顶部 KPI (紧凑布局) ===
+# === 6. 顶部 KPI 指标 ===
 total_pl = df['Cumulative P&L'].iloc[-1]
 current_equity = df['Equity'].iloc[-1]
 total_return = df['Return %'].iloc[-1]
 
-# 使用 columns 布局，并在 Notion 中通常显示在一行
-c1, c2, c3, c4 = st.columns([1, 1, 1, 0.2]) # c4是刷新按钮占位
+c1, c2, c3, c4 = st.columns([1, 1, 1, 0.2])
 c1.metric("Equity", f"${current_equity:,.0f}")
 c2.metric("Total P&L", f"${total_pl:,.0f}", delta=f"{total_return:.2f}%")
 c3.metric("Trades", len(df))
-if c4.button("↻"): # 极简刷新按钮
+if c4.button("↻"):
     st.cache_data.clear()
     st.rerun()
 
-# === 6. 导航栏 (模仿图中的胶囊菜单) ===
-# 相比 st.tabs，radio更省空间。如果有 st.pills (Streamlit 1.40+) 效果更好
-# 这里使用 horizontal radio 模拟菜单
 selected_tab = st.radio(
     "View:", 
     ["Account Growth", "Daily P&L", "Monthly Returns", "Win Rate"], 
@@ -167,11 +174,8 @@ selected_tab = st.radio(
     label_visibility="collapsed" # 隐藏 "View:" 标签
 )
 
-st.markdown("---") # 细分割线
+st.markdown("---")
 
-# === 7. 图表区域 (核心修改：去除边距) ===
-
-# 通用图表配置函数：去除 Plotly 留白，透明背景
 def minimal_layout(fig):
     fig.update_layout(
         margin=dict(l=0, r=0, t=10, b=0), # 关键：把上下左右边距设为0
