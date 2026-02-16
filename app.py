@@ -9,29 +9,65 @@ st.set_page_config(page_title="Trading Dashboard", layout="wide")
 
 count = st_autorefresh(interval=60 * 1000, key="dataframerefresh")
 
-hide_st_style = """
+hide_st_style ="""
 <style>
+    /* 1. 全局背景透明，让 Notion 的背景色透过来 */
+    .stApp {
+        background-color: transparent !important;
+    }
+    
+    /* 2. 移除顶部和两侧多余留白 */
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
     }
     
+    /* 3. 彻底隐藏 Header, Footer, 汉堡菜单 */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
+    .viewerBadge_container__1QSob {display: none !important;} /* 隐藏 'Viewer' 徽标 */
     
+    /* 4. 指标卡片 (KPI) 样式：去边框，纯净风格 */
     div[data-testid="stMetric"] {
         background-color: transparent !important;
-        border: 1px solid rgba(128, 128, 128, 0.2); /* 淡淡的边框 */
-        padding: 10px;
-        border-radius: 8px;
+        border: none !important; /* 去掉边框，更像 Notion 原生文字 */
+        padding: 0px !important;
         text-align: center;
     }
     
+    /* 调整指标文字大小和颜色 */
+    div[data-testid="stMetricLabel"] p {
+        font-size: 0.9rem !important;
+        color: #9b9b9b !important; /* 浅灰色标题 */
+    }
+    div[data-testid="stMetricValue"] div {
+        font-size: 1.8rem !important; /* 加大数字 */
+        color: #ffffff !important;
+    }
+
+    /* 5. 导航栏 (Radio) 魔改成 胶囊/Tab 样式 */
     div[role="radiogroup"] {
-        justify-content: center;
+        flex-direction: row;
+        justify-content: flex-start; /* 靠左对齐 */
+        background-color: rgba(255, 255, 255, 0.05); /* 极淡的背景条 */
+        padding: 4px;
+        border-radius: 8px;
+        display: inline-flex;
+        width: auto !important;
+    }
+    div[role="radiogroup"] label {
+        border: none !important;
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+        background-color: transparent !important;
+    }
+    /* 选中状态的高亮 */
+    div[role="radiogroup"] label[data-checked="true"] {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        border-radius: 6px !important;
     }
 </style>
 """
