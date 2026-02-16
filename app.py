@@ -126,13 +126,7 @@ if not raw_data:
     st.warning("未读取到数据，请检查 Database ID 或 Notion 内容。")
     st.stop()
 
-# === 4. 侧边栏设置 ===
 initial_capital = 18600
-    
-    # 添加强制刷新按钮
-if st.button("🔄"):
-    st.cache_data.clear()
-    st.rerun()
 
 # === 5. 数据处理逻辑 (DataFrame) ===
 def process_dataframe(data, capital):
