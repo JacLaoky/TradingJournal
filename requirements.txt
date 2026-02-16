@@ -2,3 +2,4 @@ streamlit
 pandas
 notion-client
 plotly
+streamlit-autorefresh
