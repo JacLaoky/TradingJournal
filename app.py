@@ -5,39 +5,38 @@ import plotly.graph_objects as go
 from notion_client import Client
 from streamlit_autorefresh import st_autorefresh
 
-# === 1. 页面配置 ===
 st.set_page_config(page_title="Trading Dashboard", layout="wide")
 
 count = st_autorefresh(interval=60 * 1000, key="dataframerefresh")
 
-# 隐藏默认菜单
 hide_st_style = """
 <style>
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
     }
+    
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* 让 Metric 指标背景透明，但加个边框 */
     div[data-testid="stMetric"] {
-        background-color: transparent !important; /* 透明 */
-        border: 1px solid rgba(255, 255, 255, 0.2); /* 淡淡的白边框 */
+        background-color: transparent !important;
+        border: 1px solid rgba(128, 128, 128, 0.2); /* 淡淡的边框 */
         padding: 10px;
-        border-radius: 5px;
+        border-radius: 8px;
         text-align: center;
     }
-    /* 不需要强制改字体颜色，Streamlit 会自动变成白色适应黑背景 */
+    
+    div[role="radiogroup"] {
+        justify-content: center;
+    }
 </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# === 2. Notion 连接设置 ===
-# 初始化 Notion 客户端
 try:
     notion = Client(auth=st.secrets["NOTION_TOKEN"])
     DATABASE_ID = st.secrets["DATABASE_ID"]
@@ -45,7 +44,6 @@ except FileNotFoundError:
     st.error("请配置 .streamlit/secrets.toml 文件！")
     st.stop()
 
-# === 3. 获取并清洗 Notion 数据 ===
 @st.cache_data(ttl=60)  # 设置缓存60秒，避免频繁请求 Notion
 def load_notion_data():
     try:
@@ -125,9 +123,10 @@ initial_capital = 18600
 def process_dataframe(data, capital):
     df = pd.DataFrame(data)
     df['Date'] = pd.to_datetime(df['Date'])
+
+    df['Date'] = df['Date'].dt.normalize()
+   
     df = df.sort_values(by='Date')
-    
-    # --- 核心计算 ---
     df['Cumulative P&L'] = df['P&L'].cumsum()
     df['Equity'] = capital + df['Cumulative P&L']
     df['Return %'] = (df['Cumulative P&L'] / capital) * 100
@@ -149,7 +148,7 @@ total_return = df['Return %'].iloc[-1]
 c1, c2, c3, c4 = st.columns([1, 1, 1, 0.2])
 c1.metric("Equity", f"${current_equity:,.0f}")
 c2.metric("Total P&L", f"${total_pl:,.0f}", delta=f"{total_return:.2f}%")
-c3.metric("Trades", len(df))
+c3.metric("Total Trades", len(df))
 if c4.button("↻"):
     st.cache_data.clear()
     st.rerun()
@@ -163,39 +162,63 @@ selected_tab = st.radio(
 
 st.markdown("---")
 
-def minimal_layout(fig):
+def shared_layout(fig):
     fig.update_layout(
-        margin=dict(l=0, r=0, t=10, b=0), # 关键：把上下左右边距设为0
+        margin=dict(l=0, r=0, t=10, b=0), # 去除边距
         paper_bgcolor='rgba(0,0,0,0)',    # 透明背景
         plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False),       # 去掉网格线更像截图
-        yaxis=dict(showgrid=True, gridcolor='rgba(200,200,200,0.2)'),
-        height=350,                       # 固定高度，防止太高
+        height=350,
         showlegend=False,
-        hovermode="x unified"
+        hovermode="x unified",
+        # [关键修复] 允许缩放和平移
+        dragmode='zoom', 
+    )
+    # [关键修复] 强制 X 轴格式，不显示小时/分钟
+    fig.update_xaxes(
+        tickformat="%Y-%m-%d",
+        showgrid=False
+    )
+    fig.update_yaxes(
+        showgrid=True, 
+        gridcolor='rgba(128,128,128,0.2)'
     )
     return fig
 
+config_settings = {
+    'displayModeBar': True, # 开启工具栏
+    'displaylogo': False,   # 隐藏 Plotly 广告 Logo
+    'modeBarButtonsToRemove': ['lasso2d', 'select2d'] # 移除不常用的选择工具
+}
+
 if selected_tab == "Account Growth":
-    # 模仿截图：曲线图
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df['Date'], y=df['Equity'],
         mode='lines',
         line=dict(color='#00C805', width=2, shape='spline'), # 平滑曲线
         fill='tozeroy',
-        fillcolor='rgba(0, 200, 5, 0.05)' # 极淡的填充
+        fillcolor='rgba(0, 200, 5, 0.05)',
+        name="Equity"
     ))
-    # 模仿截图：只在最后一点显示 Label，防止太乱
+
+    fig.add_hline(
+        y=initial_capital, 
+        line_dash="dash", 
+        line_color="rgba(255, 255, 255, 0.5)", # 半透明白色（适应深色模式）
+        annotation_text="Initial Capital", 
+        annotation_position="bottom right"
+    )
+    
     fig.add_trace(go.Scatter(
         x=[df['Date'].iloc[-1]], y=[df['Equity'].iloc[-1]],
         mode='markers+text',
         text=[f"${df['Equity'].iloc[-1]:,.0f}"],
         textposition="top left",
-        marker=dict(color='#00C805', size=8)
+        marker=dict(color='#00C805', size=8),
+        name="Current"
     ))
-    fig = minimal_layout(fig)
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False}) # 隐藏工具栏
+    fig = shared_layout(fig)
+    st.plotly_chart(fig, use_container_width=True, config=config_settings) # 隐藏工具栏
 
 elif selected_tab == "Daily P&L":
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in df['P&L']]
@@ -203,8 +226,8 @@ elif selected_tab == "Daily P&L":
         x=df['Date'], y=df['P&L'],
         marker_color=colors
     ))
-    fig = minimal_layout(fig)
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    fig = shared_layout(fig)
+    st.plotly_chart(fig, use_container_width=True, config=config_settings)
 
 elif selected_tab == "Monthly Returns":
     monthly_df = df.groupby('Month')['P&L'].sum().reset_index()
@@ -215,8 +238,8 @@ elif selected_tab == "Monthly Returns":
         text=monthly_df['P&L'].apply(lambda x: f"{x:,.0f}"),
         textposition='auto'
     ))
-    fig = minimal_layout(fig)
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    fig = shared_layout(fig)
+    st.plotly_chart(fig, use_container_width=True, config=config_settings)
 
 elif selected_tab == "Win Rate":
     win_loss = df['Result'].value_counts()
@@ -231,4 +254,4 @@ elif selected_tab == "Win Rate":
         height=300,
         showlegend=True
     )
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    st.plotly_chart(fig, use_container_width=True, config=config_settings)
