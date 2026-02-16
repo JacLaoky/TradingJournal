@@ -199,7 +199,8 @@ if selected_tab == "Account Growth":
         line=dict(color='#00C805', width=2, shape='spline'), # 平滑曲线
         fill='tozeroy',
         fillcolor='rgba(0, 200, 5, 0.05)',
-        name="Equity"
+        name="Equity",
+        customdata=df['Return %'],
     ))
 
     fig.add_hline(
