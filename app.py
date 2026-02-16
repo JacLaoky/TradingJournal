@@ -204,7 +204,7 @@ if selected_tab == "Account Growth":
     fig.add_hline(
         y=initial_capital, 
         line_dash="dash", 
-        line_color="rgba(255, 255, 255, 0.5)", # 半透明白色（适应深色模式）
+        line_color="rgba(255, 255, 255, 0.5)", 
         annotation_text="Initial Capital", 
         annotation_position="bottom right"
     )
@@ -224,6 +224,8 @@ elif selected_tab == "Daily P&L":
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in df['P&L']]
     fig = go.Figure(go.Bar(
         x=df['Date'], y=df['P&L'],
+        text=df['P&L'].apply(lambda x: f"{x:,.0f}"),
+        textposition='outside',
         marker_color=colors
     ))
     fig = shared_layout(fig)
@@ -236,7 +238,7 @@ elif selected_tab == "Monthly Returns":
         x=monthly_df['Month'], y=monthly_df['P&L'],
         marker_color=colors,
         text=monthly_df['P&L'].apply(lambda x: f"{x:,.0f}"),
-        textposition='auto'
+        textposition='outside'
     ))
     fig = shared_layout(fig)
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
@@ -246,7 +248,7 @@ elif selected_tab == "Win Rate":
     color_map = {'Win':'#00C805', 'Loss':'#FF3B30', 'Break Even': 'gray'}
     fig = px.pie(
         values=win_loss.values, names=win_loss.index,
-        hole=0.6, # 甜甜圈图更现代
+        hole=0.6, 
         color=win_loss.index, color_discrete_map=color_map
     )
     fig.update_layout(
