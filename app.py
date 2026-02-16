@@ -215,7 +215,10 @@ if selected_tab == "Account Growth":
     fig.add_trace(go.Scatter(
         x=[df['Date']], y=[df['Equity']],
         mode='markers+text',
-        text=[f"${df['Equity'].iloc[-1]:,.0f}<br>({df['Return %'].iloc[-1]:+.2f}%)"],
+        text=[
+            f"${e:,.0f}<br>({r:+.2f}%)" 
+            for e, r in zip(df['Equity'], df['Return %'])
+        ],
         textposition="top left",
         marker=dict(color='#00C805', size=8),
         name="Current"
