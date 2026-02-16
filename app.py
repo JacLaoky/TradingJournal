@@ -3,9 +3,12 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from notion_client import Client
+from streamlit_autorefresh import st_autorefresh
 
 # === 1. 页面配置 ===
-st.set_page_config(page_title="Trading Dashboard Pro", layout="wide")
+st.set_page_config(page_title="Trading Dashboard", layout="wide")
+
+count = st_autorefresh(interval=60 * 1000, key="dataframerefresh")
 
 # 隐藏默认菜单
 hide_st_style = """
