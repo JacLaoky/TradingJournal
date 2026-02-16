@@ -153,13 +153,15 @@ total_pl = df['Cumulative P&L'].iloc[-1]
 current_equity = df['Equity'].iloc[-1]
 total_return = df['Return %'].iloc[-1]
 
-c1, c2, c3, c4 = st.columns(4)
+c1, c2, c3, c4 = st.columns([1, 1, 1, 0.2])
 c1.metric("Equity", f"${current_equity:,.0f}")
 c2.metric("Total P&L", f"${total_pl:,.0f}", delta=f"{total_return:.2f}%")
 c3.metric("Trades", len(df))
 if c4.button("↻"):
     st.cache_data.clear()
     st.rerun()
+
+st.divider()
 
 selected_tab = st.radio(
     "View:", 
