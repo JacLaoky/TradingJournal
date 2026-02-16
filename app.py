@@ -235,12 +235,16 @@ elif selected_tab == "Daily P&L":
 elif selected_tab == "Monthly Returns":
     monthly_df = df.groupby(['Month_Sort', 'Month'])['P&L'].sum().reset_index()
     monthly_df = monthly_df.sort_values('Month_Sort')
+    monthly_df['Return %'] = (monthly_df['P&L'] / initial_capital) * 100
+    monthly_df['Label'] = monthly_df.apply(
+        lambda x: f"${x['P&L']:,.0f}<br>({x['Return %']:+.1f}%)", axis=1
+    )
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in monthly_df['P&L']]
     fig = go.Figure(go.Bar(
         x=monthly_df['Month'], 
         y=monthly_df['P&L'],
         marker_color=colors,
-        text=monthly_df['P&L'].apply(lambda x: f"{x:,.0f}"),
+        text=monthly_df['Label'].apply(lambda x: f"{x:,.0f}"),
         textposition='outside'
     ))
     fig = shared_layout(fig)
