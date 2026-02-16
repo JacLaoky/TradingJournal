@@ -244,7 +244,7 @@ elif selected_tab == "Monthly Returns":
         x=monthly_df['Month'], 
         y=monthly_df['P&L'],
         marker_color=colors,
-        text=monthly_df['Label'].apply(lambda x: f"{x:,.0f}"),
+        text=monthly_df['Label'],
         textposition='outside'
     ))
     fig = shared_layout(fig)
