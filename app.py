@@ -74,7 +74,14 @@ def load_notion_data():
                 
                 # 2. 获取 P&L (Number属性)
                 # 假设列名叫 "P&L"
-                pnl = props.get("Realized P&L", {}).get("number", 0)
+                pnl = props.get("Realized P&L", {})
+                pnl = 0
+                
+                if pnl_prop.get("type") == "formula":
+                    pnl = pnl_prop.get("formula", {}).get("number", 0)
+                elif pnl_prop.get("type") == "number":
+                    pnl = pnl_prop.get("number", 0)
+
                 if pnl is None: pnl = 0
                 
                 # 3. 获取 Date (Date属性 - 优先取结束时间)
