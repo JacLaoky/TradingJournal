@@ -124,7 +124,7 @@ if not raw_data:
     st.warning("未读取到数据，请检查 Database ID 或 Notion 内容。")
     st.stop()
 
-initial_capital = 18600
+initial_capital = 18641.34
 
 # === 5. 数据处理逻辑 (DataFrame) ===
 def process_dataframe(data, capital):
