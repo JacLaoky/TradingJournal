@@ -74,7 +74,7 @@ def load_notion_data():
                 
                 # 2. 获取 P&L (Number属性)
                 # 假设列名叫 "P&L"
-                pnl = props.get("Realized P&L", {})
+                pnl_prop = props.get("Realized P&L", {})
                 pnl = 0
                 
                 if pnl_prop.get("type") == "formula":
