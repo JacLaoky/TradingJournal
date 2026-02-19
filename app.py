@@ -232,10 +232,16 @@ if selected_tab == "Account Growth":
     st.plotly_chart(fig, use_container_width=True, config=config_settings) # 隐藏工具栏
 
 elif selected_tab == "Daily P&L":
-    colors = ['#00C805' if x >= 0 else '#FF3B30' for x in df['P&L']]
+    daily_df = df.groupby('Date')['P&L'].sum().reset_index()
+
+    daily_df['Daily Return %'] = (daily_df['P&L'] / initial_capital) * 100
+    daily_df['Daily_Label'] = daily_df.apply(
+        lambda x: f"${x['P&L']:,.0f}<br>({x['Daily Return %']:+.2f}%)", axis=1
+    )
+    colors = ['#00C805' if x >= 0 else '#FF3B30' for x in daily_df['P&L']]
     fig = go.Figure(go.Bar(
-        x=df['Date'], y=df['P&L'],
-        text=df['Daily_Label'],
+        x=daily_df['Date'], y=daily_df['P&L'],
+        text=daily_df['Daily_Label'],
         textposition='outside',
         marker_color=colors,
         name="Daily P&L",
