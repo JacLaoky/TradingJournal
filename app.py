@@ -218,9 +218,9 @@ if selected_tab == "Account Growth":
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=df['Date'], y=df['Equity'],
+        x=growth_df['Date'], y=growth_df['Equity'],
         mode='lines+markers+text',
-        text=df['Label_Equity'],
+        text=growth_df['Label_Equity'],
         textposition="top center",
         textfont=dict(size=10),
         line=dict(color='#00C805', width=2, shape='spline'), # 平滑曲线
@@ -228,7 +228,7 @@ if selected_tab == "Account Growth":
         fillcolor='rgba(0, 200, 5, 0.05)',
         name="Equity",
         marker=dict(size=6),
-        customdata=df['Return %'],
+        customdata=growth_df['Return %'],
         hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Equity</b>: $%{y:,.0f}<br><b>Return</b>: %{customdata:.2f}%<extra></extra>'
     ))
 
