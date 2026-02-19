@@ -204,13 +204,25 @@ config_settings = {
 }
 
 if selected_tab == "Account Growth":
+    start_date = df['Date'].min() - pd.Timedelta(days=1)
+
+    start_row = pd.DataFrame([{
+        'Date': start_date,
+        'Equity': initial_capital,
+        'Return %': 0.0,
+        'Label_Equity': f"${initial_capital:,.0f}<br>(+0.0%)"
+    }])
+
+    daily_equity_df = df.groupby('Date').tail(1)
+    growth_df = pd.concat([start_row, daily_equity_df], ignore_index=True)
+    
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df['Date'], y=df['Equity'],
         mode='lines+markers+text',
         text=df['Label_Equity'],
-        textposition="top left",
-        textfont=dict(size=9, color="#e0e0e0"),
+        textposition="top center",
+        textfont=dict(size=10),
         line=dict(color='#00C805', width=2, shape='spline'), # 平滑曲线
         fill='tozeroy',
         fillcolor='rgba(0, 200, 5, 0.05)',
@@ -223,7 +235,7 @@ if selected_tab == "Account Growth":
     fig.add_hline(
         y=initial_capital, 
         line_dash="dash", 
-        line_color="rgba(255, 255, 255, 0.5)", 
+        line_color="rgba(128, 128, 128, 0.5)", 
         annotation_text="Initial Capital", 
         annotation_position="bottom right"
     )
