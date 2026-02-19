@@ -183,10 +183,9 @@ def shared_layout(fig):
         height=350,
         showlegend=False,
         hovermode="x unified",
-        # [关键修复] 允许缩放和平移
         dragmode='zoom', 
     )
-    # [关键修复] 强制 X 轴格式，不显示小时/分钟
+
     fig.update_xaxes(
         tickformat="%Y-%m-%d",
         showgrid=False
@@ -248,7 +247,7 @@ elif selected_tab == "Daily P&L":
 
     daily_df['Daily Return %'] = (daily_df['P&L'] / initial_capital) * 100
     daily_df['Daily_Label'] = daily_df.apply(
-        lambda x: f"${x['P&L']:,.0f}<br>({x['Daily Return %']:+.2f}%)", axis=1
+        lambda x: f"${x['P&L']:,.2f}<br>({x['Daily Return %']:+.2f}%)", axis=1
     )
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in daily_df['P&L']]
     fig = go.Figure(go.Bar(
@@ -257,6 +256,7 @@ elif selected_tab == "Daily P&L":
         textposition='outside',
         marker_color=colors,
         name="Daily P&L",
+        hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Daily P&L</b>: $%{y:,.2f}<extra></extra>'
     ))
     fig = shared_layout(fig)
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
@@ -266,7 +266,7 @@ elif selected_tab == "Monthly Returns":
     monthly_df = monthly_df.sort_values('Month_Sort')
     monthly_df['Return %'] = (monthly_df['P&L'] / initial_capital) * 100
     monthly_df['Label'] = monthly_df.apply(
-        lambda x: f"${x['P&L']:,.0f}<br>({x['Return %']:+.1f}%)", axis=1
+        lambda x: f"${x['P&L']:,.2f}<br>({x['Return %']:+.2f}%)", axis=1
     )
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in monthly_df['P&L']]
     fig = go.Figure(go.Bar(
@@ -274,7 +274,8 @@ elif selected_tab == "Monthly Returns":
         y=monthly_df['P&L'],
         marker_color=colors,
         text=monthly_df['Label'],
-        textposition='outside'
+        textposition='outside',
+        hovertemplate='<b>Month</b>: %{x}<br><b>Monthly P&L</b>: $%{y:,.2f}<extra></extra>'
     ))
     fig = shared_layout(fig)
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
