@@ -239,8 +239,14 @@ if selected_tab == "Account Growth":
         annotation_text="Initial Capital", 
         annotation_position="bottom right"
     )
-    
     fig = shared_layout(fig)
+
+    y_min = growth_df['Equity'].min()
+    y_max = growth_df['Equity'].max()
+    padding = (y_max - y_min) * 0.1
+    if padding == 0: padding = initial_capital * 0.1
+    fig.update_yaxes(range=[y_min - padding, y_max + padding])
+    
     st.plotly_chart(fig, use_container_width=True, config=config_settings) # 隐藏工具栏
 
 elif selected_tab == "Daily P&L":
@@ -261,6 +267,13 @@ elif selected_tab == "Daily P&L":
         cliponaxis=False
     ))
     fig = shared_layout(fig)
+
+    pnl_min = daily_df['P&L'].min()
+    pnl_max = daily_df['P&L'].max()
+    padding = (pnl_max - pnl_min) * 0.15 
+    if padding == 0: padding = abs(pnl_max) * 0.1
+    fig.update_yaxes(range=[pnl_min - padding, pnl_max + padding])
+
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
 
 elif selected_tab == "Monthly Returns":
@@ -281,6 +294,13 @@ elif selected_tab == "Monthly Returns":
         cliponaxis=False
     ))
     fig = shared_layout(fig)
+
+    pnl_min = monthly_df['P&L'].min()
+    pnl_max = monthly_df['P&L'].max()
+    padding = (pnl_max - pnl_min) * 0.15 
+    if padding == 0: padding = abs(pnl_max) * 0.1
+    fig.update_yaxes(range=[pnl_min - padding, pnl_max + padding])
+
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
 
 elif selected_tab == "Win Rate":
