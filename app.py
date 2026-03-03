@@ -257,11 +257,21 @@ elif selected_tab == "Daily P&L":
         lambda x: f"${x['P&L']:,.2f}<br>({x['Daily Return %']:+.2f}%)", axis=1
     )
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in daily_df['P&L']]
+
+    max_abs_pnl = daily_df['P&L'].abs().max()
+    if max_abs_pnl == 0: max_abs_pnl = 1
+
+    opacities = 0.3 + 0.7 * (daily_df['P&L'].abs() / max_abs_pnl)
+
     fig = go.Figure(go.Bar(
         x=daily_df['Date'], y=daily_df['P&L'],
         text=daily_df['Daily_Label'],
         textposition='outside',
-        marker_color=colors,
+        marker=dict(
+            color=colors,
+            opacity=opacities,
+            line=dict(color=colors, width=1.5)
+        ),
         name="Daily P&L",
         hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Daily P&L</b>: $%{y:,.2f}<extra></extra>',
         cliponaxis=False
@@ -284,12 +294,22 @@ elif selected_tab == "Monthly Returns":
         lambda x: f"${x['P&L']:,.2f}<br>({x['Return %']:+.2f}%)", axis=1
     )
     colors = ['#00C805' if x >= 0 else '#FF3B30' for x in monthly_df['P&L']]
+
+    max_abs_pnl = monthly_df['P&L'].abs().max()
+    if max_abs_pnl == 0: max_abs_pnl = 1
+
+    opacities = 0.3 + 0.7 * (monthly_df['P&L'].abs() / max_abs_pnl)
+
     fig = go.Figure(go.Bar(
         x=monthly_df['Month'], 
         y=monthly_df['P&L'],
-        marker_color=colors,
         text=monthly_df['Label'],
         textposition='outside',
+        marker=dict(
+            color=colors,
+            opacity=opacities,
+            line=dict(color=colors, width=1.5)
+        ),
         hovertemplate='<b>Month</b>: %{x}<br><b>Monthly P&L</b>: $%{y:,.2f}<extra></extra>',
         cliponaxis=False
     ))
