@@ -170,17 +170,17 @@ selected_tab = st.radio(
     "View:", 
     ["Account Growth", "Daily P&L", "Monthly Returns", "Win Rate"], 
     horizontal=True,
-    label_visibility="collapsed" # 隐藏 "View:" 标签
+    label_visibility="collapsed"
 )
 
 st.markdown("---")
 
 def shared_layout(fig):
     fig.update_layout(
-        margin=dict(l=0, r=0, t=10, b=0), # 去除边距
-        paper_bgcolor='rgba(0,0,0,0)',    # 透明背景
+        margin=dict(l=15, r=15, t=50, b=10),
+        paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        height=350,
+        height=400,
         showlegend=False,
         hovermode="x unified",
         dragmode='zoom', 
@@ -228,7 +228,8 @@ if selected_tab == "Account Growth":
         name="Equity",
         marker=dict(size=6),
         customdata=growth_df['Return %'],
-        hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Equity</b>: $%{y:,.0f}<br><b>Return</b>: %{customdata:.2f}%<extra></extra>'
+        hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Equity</b>: $%{y:,.0f}<br><b>Return</b>: %{customdata:.2f}%<extra></extra>',
+        cliponaxis=False
     ))
 
     fig.add_hline(
@@ -256,7 +257,8 @@ elif selected_tab == "Daily P&L":
         textposition='outside',
         marker_color=colors,
         name="Daily P&L",
-        hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Daily P&L</b>: $%{y:,.2f}<extra></extra>'
+        hovertemplate='<b>Date</b>: %{x|%Y-%m-%d}<br><b>Daily P&L</b>: $%{y:,.2f}<extra></extra>',
+        cliponaxis=False
     ))
     fig = shared_layout(fig)
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
@@ -275,7 +277,8 @@ elif selected_tab == "Monthly Returns":
         marker_color=colors,
         text=monthly_df['Label'],
         textposition='outside',
-        hovertemplate='<b>Month</b>: %{x}<br><b>Monthly P&L</b>: $%{y:,.2f}<extra></extra>'
+        hovertemplate='<b>Month</b>: %{x}<br><b>Monthly P&L</b>: $%{y:,.2f}<extra></extra>',
+        cliponaxis=False
     ))
     fig = shared_layout(fig)
     st.plotly_chart(fig, use_container_width=True, config=config_settings)
